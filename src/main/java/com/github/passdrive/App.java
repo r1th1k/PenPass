@@ -1,35 +1,19 @@
 package com.github.passdrive;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import com.google.gson.*;
+import com.github.passdrive.usbDetector.manager.DetectTaskSchduler;
+import com.github.passdrive.utils.configPopulator;
 
+// Workflow
+// Thread1: Detector
 public class App {
-    // Chrome extention native app host
-    // entry point
-    public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-        while (true) {
-            // Read message from Chrome
-            String input = reader.readLine();
-
-            // Parse JSON message
-            JsonElement jsonElement = JsonParser.parseString(input);
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-
-            // data: {domain: '', subdomain: ''}
-            String messageText = jsonObject.get("data").getAsString();
-            String responseText = "Received message: " + messageText;
-
-            // Prepare response
-            JsonObject response = new JsonObject();
-            response.addProperty("data", responseText);
-
-            // Send response to Chrome
-            System.out.println(response.toString());
-        }
+    // populate configurations if exists
+    public static void main(String[] args) {
+        // populate configurations
+        configPopulator.populate();
+        
+        // USB Detection phase
+        DetectTaskSchduler detectTaskSchduler = new DetectTaskSchduler();
+        detectTaskSchduler.start();
     }
 }
 

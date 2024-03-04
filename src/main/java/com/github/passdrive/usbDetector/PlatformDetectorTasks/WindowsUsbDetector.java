@@ -12,7 +12,8 @@ import com.github.passdrive.usbDetector.UsbDevice;
 import com.github.passdrive.usbDetector.PlatformDetectorTasks.interfaces.UsbDetector;
 
 public class WindowsUsbDetector implements UsbDetector {
-    private String detectedDevice;
+    private String detectedVolume = "";
+    private UsbDevice detectedDevice = null;
     // Command
     private final String COMMAND = WMIC_PATH + " logicaldisk where drivetype=" + WIN_DEVICE_TPE
             + " get drivetype,deviceid /format:csv";
@@ -54,7 +55,8 @@ public class WindowsUsbDetector implements UsbDetector {
 
             // Return the detected USB
             if (result.getIsDetected()) {
-                detectedDevice = result.getDeviceVolume();
+                this.detectedVolume = result.getDeviceVolume();
+                this.detectedDevice = result;
                 return true;
             }
 
@@ -65,8 +67,13 @@ public class WindowsUsbDetector implements UsbDetector {
     }
 
     @Override
-    public String getDetectedDevice() {
-        return detectedDevice;
+    public UsbDevice getDetectedDevice() {
+        return this.detectedDevice;
+    }
+
+    @Override
+    public String getDetectedVolume() {
+        return this.detectedVolume;
     }
 }
 

@@ -11,6 +11,7 @@ import com.github.passdrive.usbDetector.PlatformDetectorTasks.interfaces.UsbDete
 
 public class MacUsbDetector implements UsbDetector {
     private String detectedDevice = "";
+    private UsbDevice detectedUsb = null;
     // Command
     private final String COMMAND = "diskutil list";
 
@@ -60,6 +61,7 @@ public class MacUsbDetector implements UsbDetector {
             // Return the detected USB
             if (result.getIsDetected()) {
                 detectedDevice = result.getDeviceVolume();
+                this.detectedUsb = result;
                 return true;
             }
 
@@ -70,7 +72,14 @@ public class MacUsbDetector implements UsbDetector {
     }
 
     @Override
-    public String getDetectedDevice() {
+    public String getDetectedVolume() {
         return this.detectedDevice;
     }
+
+    @Override
+    public UsbDevice getDetectedDevice() {
+        return this.detectedUsb;
+    }
+
+    
 }

@@ -15,7 +15,8 @@ import com.github.passdrive.usbDetector.PlatformDetectorTasks.interfaces.UsbDete
  */
 
 public class LinuxUsbDetector implements UsbDetector {
-    private String detectedDevice = "";
+    private String detectedVolume = "";
+    private UsbDevice detectedDevice = null;
     // Command
     private final String COMMAND = "df -h";
 
@@ -59,7 +60,8 @@ public class LinuxUsbDetector implements UsbDetector {
 
             // Return the detected USB
             if (result.getIsDetected()) {
-                detectedDevice = result.getDeviceVolume();
+                detectedVolume = result.getDeviceVolume();
+                detectedDevice = result;
                 return true;
             }
 
@@ -70,7 +72,12 @@ public class LinuxUsbDetector implements UsbDetector {
     }
 
     @Override
-    public String getDetectedDevice() {
+    public UsbDevice getDetectedDevice() {
         return this.detectedDevice;
+    }
+
+    @Override
+    public String getDetectedVolume() {
+        return this.detectedVolume;
     }
 }

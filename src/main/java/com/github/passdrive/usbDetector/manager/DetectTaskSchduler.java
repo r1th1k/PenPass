@@ -4,7 +4,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.github.passdrive.Environment.Environment;
+import com.github.passdrive.Environment.EnvironmentImpl;
 import com.github.passdrive.usbDetector.manager.platform.tasks.DarTask;
 import com.github.passdrive.usbDetector.manager.platform.tasks.LinTask;
 import com.github.passdrive.usbDetector.manager.platform.tasks.WinTask;
@@ -17,10 +17,10 @@ public class DetectTaskSchduler {
     private String detectedDevice;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
-    synchronized public void start(Environment environment) {
+    synchronized public void start() {
 
         // Get os
-        String os = (String) environment.getEnvironmentMap("platform");
+        String os = (String) EnvironmentImpl.getEnvironmentMap("platform");
 
         if ( os != null ) {
             if ( os.equals("win32") ) {

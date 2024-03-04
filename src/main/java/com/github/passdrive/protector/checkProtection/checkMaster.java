@@ -26,7 +26,7 @@ public class checkMaster {
             EnvironmentImpl.getEnvironmentMap("root");
 
             File protect = new File(
-                    "" + usbDrive.getDeviceVolume() + File.separator + root + File.separator + ".protected");
+                    "" + usbDrive.getDeviceVolume() + File.separator + root + ".protected");
 
             try {
                 protect.createNewFile();

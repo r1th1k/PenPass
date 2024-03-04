@@ -1,5 +1,7 @@
 package com.github.passdrive.usbDetector;
 
+import java.io.File;
+
 public class UsbDevice {
     private Boolean isDetected;
     private String deviceVolume;
@@ -23,5 +25,21 @@ public class UsbDevice {
 
     public void setIsDetected(Boolean isDetected) {
         this.isDetected = isDetected;
+    }
+
+    public Boolean isRemoved() {
+        // read deviceVolume if not exists disconnected
+        if (getIsDetected()) {
+            String volume = getDeviceVolume();
+            
+            File file = new File(volume);
+            if (!file.exists()) {
+                setIsDetected(false);
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 }

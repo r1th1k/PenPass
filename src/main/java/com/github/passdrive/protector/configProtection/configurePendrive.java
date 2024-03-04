@@ -14,7 +14,7 @@ import com.github.passdrive.usbDetector.UsbDevice;
  */
 
 public class configurePendrive {
-    public static Boolean configure(UsbDevice usbDrive, EnvironmentImpl environment, String hashedPassword) {
+    public static Boolean configure(UsbDevice usbDrive, String hashedPassword) {
         if (usbDrive.getIsDetected()) {
             
             // Get Environment root to store config file
@@ -22,7 +22,7 @@ public class configurePendrive {
             EnvironmentImpl.getEnvironmentMap("root");
 
             File protect = new File(
-                    "" + usbDrive.getDeviceVolume() + File.separator + root + File.separator + ".protected");
+                    "" + usbDrive.getDeviceVolume() + File.separator + root + ".protected");
             
             // Create .protected write master password
             try {

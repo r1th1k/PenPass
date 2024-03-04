@@ -12,7 +12,7 @@ import com.github.passdrive.usbDetector.UsbDevice;
  */
 
 public class detectConfiguration {
-    public static Boolean detect(UsbDevice usbDrive, EnvironmentImpl environment) {
+    public static Boolean detect(UsbDevice usbDrive) {
         if (usbDrive.getIsDetected()) {
             /**
              * 
@@ -29,7 +29,7 @@ public class detectConfiguration {
              */
 
             File protect = new File(
-                    "" + usbDrive.getDeviceVolume() + File.separator + root + File.separator + ".protected");
+                    "" + usbDrive.getDeviceVolume() + File.separator + root + ".protected");
             if (protect.exists()) {
                 return true;
             }

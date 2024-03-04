@@ -24,7 +24,9 @@ public class LinTask extends Task {
                 System.out.println("USB Detected: " + detector.getDetectedDevice());
 
                 // Environment set
-                EnvironmentImpl.setEnvironmentMap("volume", detector.getDetectedDevice());
+                EnvironmentImpl.setEnvironmentMap("detected", Boolean.TRUE);
+                EnvironmentImpl.setEnvironmentMap("volume", detector.getDetectedVolume());
+                EnvironmentImpl.setEnvironmentMap("usbdevice", detector.getDetectedDevice());
                 scheduler.stop();
             } else {
                 System.out.println("Waiting for USB device...");

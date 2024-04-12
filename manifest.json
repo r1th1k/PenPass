@@ -1,0 +1,7 @@
+{
+  "name": "com.passdrive-service",
+  "description": "Passdrive password vault",
+  "path": "/Users/surya-tt0168/lays/application/passdrive-service.sh",
+  "type": "stdio",
+  "allowed_origins": ["*"]
+}

@@ -81,7 +81,7 @@ public class AES extends Algorithm {
     }
 
     // Encryption helper function
-    private static String encrypt(String algorithm, String input, SecretKey key,
+    public String encrypt(String algorithm, String input, SecretKey key,
             IvParameterSpec iv) {
 
         Cipher cipher;
@@ -98,7 +98,7 @@ public class AES extends Algorithm {
     }
 
     // Decryption helper function
-    private static String decrypt(String algorithm, String cipherText, SecretKey key,
+    public String decrypt(String algorithm, String cipherText, SecretKey key,
             IvParameterSpec iv) {
         Cipher cipher;
         try {
@@ -119,7 +119,7 @@ public class AES extends Algorithm {
         SecretKey secret = (SecretKey) EnvironmentImpl.getEnvironmentMap("secret-aes");
         IvParameterSpec iv = (IvParameterSpec) EnvironmentImpl.getEnvironmentMap("iv-aes");
 
-        return AES.encrypt("AES/CBC/PKCS5Padding", message, secret, iv);
+        return encrypt("AES/CBC/PKCS5Padding", message, secret, iv);
     }
 
     @Override
@@ -127,7 +127,21 @@ public class AES extends Algorithm {
         SecretKey secret = (SecretKey) EnvironmentImpl.getEnvironmentMap("secret");
         IvParameterSpec iv = (IvParameterSpec) EnvironmentImpl.getEnvironmentMap("iv");
 
-        return AES.decrypt("AES/CBC/PKCS5Padding", encryptedMessage, secret, iv);
+        return decrypt("AES/CBC/PKCS5Padding", encryptedMessage, secret, iv);
     }
 
+    public String getKey() {
+        SecretKey secret = (SecretKey) EnvironmentImpl.getEnvironmentMap("secret-aes");
+        String key = Base64.getEncoder().encodeToString(secret.getEncoded());
+        return key;
+        // new SecretKeySpec(Base64.getDecoder().decode(key), "AES");
+    }
+
+    public String getIv() {
+        IvParameterSpec iv = (IvParameterSpec) EnvironmentImpl.getEnvironmentMap("iv-aes");
+        String ivString = Base64.getEncoder().encodeToString(iv.getIV());
+        return ivString;
+        // Convert ivString to IvParameterSpec again?
+        // new IvParameterSpec(Base64.getDecoder().decode(ivString));
+    }
 }

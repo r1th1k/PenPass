@@ -8,11 +8,13 @@ import java.util.Iterator;
 import com.github.passdrive.Environment.EnvironmentImpl;
 
 public class configPopulator {
+    private static final String CONFIG_FILE = "properties.config";
+    public static boolean isPopulated = false;
     // Populate peoperties.config to EnvironmentImpl
     public static void populate() {
         EnvironmentImpl.setEnvironmentMap("logged", Boolean.FALSE);
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        InputStream input = classLoader.getResourceAsStream("properties.config");
+        InputStream input = classLoader.getResourceAsStream(CONFIG_FILE);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(input));
         Iterator<String> it = reader.lines().iterator();
@@ -24,6 +26,7 @@ public class configPopulator {
             String value = tokens[1];
             EnvironmentImpl.setEnvironmentMap(key, value);
         }
+        configPopulator.isPopulated = true;
     }
 
     public static void write(String key, String value) {

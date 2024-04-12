@@ -4,7 +4,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.github.passdrive.Environment.EnvironmentImpl;
 import com.github.passdrive.usbDetector.manager.platform.tasks.DarTask;
 import com.github.passdrive.usbDetector.manager.platform.tasks.LinTask;
 import com.github.passdrive.usbDetector.manager.platform.tasks.WinTask;
@@ -14,14 +13,10 @@ import com.github.passdrive.usbDetector.manager.platform.tasks.WinTask;
  * for detecting USB devices
  */
 public class DetectTaskSchduler {
-    private String detectedDevice;
+    private String detectedDevice = null;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
-    synchronized public void start() {
-
-        // Get os
-        String os = (String) EnvironmentImpl.getEnvironmentMap("platform");
-
+    synchronized public void start(String os) {
         if ( os != null ) {
             if ( os.equals("win32") ) {
                 // Schedule the task to run every 5 seconds

@@ -15,3 +15,4 @@ This Project runs completely locally to automatically generate, store and paste 
 - [X] storing the generated password by encrypting it
 - [X] retrieving the encrypted password by decrypting it
 - [ ] integration?
+- [ ] TEST

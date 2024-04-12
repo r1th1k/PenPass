@@ -4,13 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Properties;
 
 import com.github.passdrive.Environment.EnvironmentImpl;
+import com.github.passdrive.Schduler.StoreJobScheduler;
 import com.github.passdrive.encryptor.Encipher;
 import com.github.passdrive.encryptor.Algorithms.interfaces.Algorithm;
 import com.github.passdrive.protector.hashing.Hash;
 import com.github.passdrive.protector.hashing.interfaces.hash;
 import com.github.passdrive.usbDetector.UsbDevice;
+import com.github.passdrive.utils.constants.AppConstants;
 import com.google.gson.JsonObject;
 
 /*
@@ -86,67 +89,66 @@ public class PasswordManager {
     }
 
     // Site passwords
-    public static Boolean storePassword(UsbDevice usb, String domainPath, String subDomain, String username, String password) {
-        if ( usb.getIsDetected() ) {
-            // Get Environment root to store config file
-            String root = "";
-            EnvironmentImpl.getEnvironmentMap("root");
+    public static Boolean storePassword(String root, UsbDevice usb, String domainPath, String subDomain, String username, String password, String destDirectory, boolean fetchFlag, int bufferID) {
+        File domain = new File(
+                "" + destDirectory + File.separator + "" + bufferID + "");
 
-            File protect = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + ".protected");
-            File passwords = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + "data");
-
-            try {
-                if ( !protect.exists() ) {
-                    return false;
-                }
-                // Recursively create if not exists directory
-                if ( !passwords.exists() ) {
-                    passwords.mkdirs();
-                }
-                new File(passwords.getAbsolutePath() + File.separator + domainPath).createNewFile();
-
-                FileInputStream fi = new FileInputStream(passwords.getAbsolutePath() + File.separator + domainPath);
-
-                byte[] buffer = fi.readAllBytes();
-                fi.close();
-
-                FileOutputStream fio = new FileOutputStream(passwords.getAbsolutePath() + File.separator + domainPath);
-                
-                Algorithm aes = Encipher.getAlgorithm("AES");
-                aes.init();
-
-                // subdomain:username:password;...
-                fio.write(buffer);
-                fio.write(';');
-                fio.write( aes.encrypt(subDomain).getBytes() );
-                fio.write( aes.encrypt(username).getBytes() );
-                fio.write( aes.encrypt(password).getBytes() );
-                fio.close();
-
-                return true;
-            } catch (Exception io) {
-                // Fallback
-                return false;
+        try {
+            // if ( !protect.exists() ) {
+            //     return false;
+            // }
+            // Recursively create if not exists directory
+            if ( !domain.exists() ) {
+                domain.createNewFile();
             }
+
+            FileOutputStream fio = new FileOutputStream(domain);
+            
+            Algorithm aes = Encipher.getAlgorithm("AES");
+            aes.init();
+
+            // subdomain:username:password;...
+            fio.write( aes.encrypt(subDomain).getBytes() );
+            fio.write( aes.encrypt(username).getBytes() );
+            fio.write( aes.encrypt(password).getBytes() );
+            fio.close();
+
+            // Scheduler to write to usb device
+            {
+                Properties properties = new Properties();
+                properties.setProperty("isUsbDetected", Boolean.toString(usb.getDeviceVolume()!=null));
+                properties.setProperty("volume", usb.getDeviceVolume());
+                properties.setProperty("bufferfile", domain.getAbsolutePath());
+                properties.setProperty("root", root);
+                properties.setProperty("domainname", domainPath);
+                properties.setProperty("fetch", Boolean.toString(fetchFlag));
+                properties.setProperty("operation", Integer.toString(AppConstants.WRITE));
+                properties.setProperty("subdomain", subDomain);
+
+                properties.setProperty("secret-aes", aes.getKey());
+                properties.setProperty("iv-aes", aes.getIv());
+
+                StoreJobScheduler scheduler = new StoreJobScheduler(properties);
+                Thread thread = new Thread(scheduler, "Scheduler Job" + bufferID);
+                thread.start();
+            }
+
+            return true;
+        } catch (Exception io) {
+            // Fallback
+            return false;
         }
-        return false;
     }
 
-    public static JsonObject getPassword(UsbDevice usb, String domainPath, String subDomain) {
+    public static JsonObject getPassword(String root, UsbDevice usb, String domainPath, String subDomain, String destDirectory) {
         JsonObject pas = new JsonObject();
         pas.addProperty("username", "");
         pas.addProperty("password", "");
         if ( usb.getIsDetected() ) {
-            // Get Environment root to store config file
-            String root = "";
-            EnvironmentImpl.getEnvironmentMap("root");
-
             File protect = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + ".protected");
+                    "" + destDirectory + File.separator + root + ".protected");
             File passwords = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + "data");
+                    "" + destDirectory + File.separator + root + "data");
 
             try {
                 if ( !protect.exists() ) {
@@ -187,100 +189,12 @@ public class PasswordManager {
         return pas;
     }
 
-    public static Boolean removePassword(UsbDevice usb, String domainPath, String subDomain) {
-        if ( usb.getIsDetected() ) {
-            // Get Environment root to store config file
-            String root = "";
-            EnvironmentImpl.getEnvironmentMap("root");
-
-            File protect = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + ".protected");
-            File passwords = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + "data");
-
-            try {
-                if ( !protect.exists() ) {
-                    return false;
-                }
-                // Recursively create if not exists
-                if ( !passwords.exists() ) {
-                    return false;
-                }
-                File domain = new File(passwords.getAbsolutePath() + File.separator + domainPath);
-                if ( !domain.exists() ) {
-                    return false;
-                }
-
-                FileInputStream fio = new FileInputStream(domain);
-                byte[] data = new byte[(int) domain.length()];
-                fio.read(data);
-                fio.close();
-
-                Algorithm aes = Encipher.getAlgorithm("AES");
-                aes.init();
-                // TODO: SEED AND WRITE
-                // String decryptedData = aes.decrypt(data.toString());
-                // if ( decryptedData.split(":")[0].equals(subDomain) ) {
-                //     domain.delete();
-                //     return true;
-                // }
-            } catch (Exception io) {
-                // Fallback
-                return false;
-            }
-        }
-        return false;
+    public static Boolean removePassword(String root, UsbDevice usb, String domainPath, String subDomain, String destDirectory, boolean fetchFlag, int bufferID) {
+        return storePassword(root, usb, domainPath, subDomain, "", "", destDirectory, fetchFlag, bufferID);
     }
 
-    public static Boolean updatePassword(UsbDevice usb, String domainPath, String subDomain, String username, String password) {
-        if ( usb.getIsDetected() ) {
-            // Get Environment root to store config file
-            String root = "";
-            EnvironmentImpl.getEnvironmentMap("root");
-
-            File protect = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + ".protected");
-            File passwords = new File(
-                    "" + usb.getDeviceVolume() + File.separator + root + "data");
-
-            try {
-                if ( !protect.exists() ) {
-                    return false;
-                }
-                // Recursively create if not exists
-                if ( !passwords.exists() ) {
-                    return false;
-                }
-                File domain = new File(passwords.getAbsolutePath() + File.separator + domainPath);
-                if ( !domain.exists() ) {
-                    return false;
-                }
-
-                FileInputStream fio = new FileInputStream(domain);
-                byte[] data = new byte[(int) domain.length()];
-                fio.read(data);
-                fio.close();
-
-                Algorithm aes = Encipher.getAlgorithm("AES");
-                aes.init();
-                String decryptedData = aes.decrypt(data.toString());
-                String[] subdomainVsPasswords = decryptedData.split(";");
-
-                // TODO: SEED AND REWRITE ?
-                // for (String password : subdomainVsPasswords) {
-                //     String[] temp = password.split(":");
-                //     if (temp[0].equals(subDomain)) {
-                //         pas.addProperty("username", temp[1]);
-                //         pas.addProperty("password", temp[2]);
-                //         break;
-                //     }
-                // }
-            } catch (Exception io) {
-                // Fallback
-                return false;
-            }
-        }
-        return false;
+    public static Boolean updatePassword(String root, UsbDevice usb, String domainPath, String subDomain, String username, String password, String destDirectory, boolean fetchFlag, int bufferID) {
+        return storePassword(root, usb, domainPath, subDomain, username, password, destDirectory, fetchFlag, bufferID);
     }
 
 }
